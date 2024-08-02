@@ -9,6 +9,8 @@ import io
 import genai
 import html
 import re
+from sklearn.impute import SimpleImputer
+
 
 # Load the trained model and encoder
 model = joblib.load('model.pkl')
