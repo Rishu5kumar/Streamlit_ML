@@ -32,7 +32,7 @@ def generate_paragraph(avg_temp, predicted_uncertainty, year, month, country):
     )
 
     # Use API key directly in method call or through environment variable
-    api_key = st.secrets["genai"]["AIzaSyCX3I28pHzmiSEM6Rt1kdVX7e2BhwSuOOA"]  # Ensure this secret is added in Streamlit Cloud
+    api_key = st.secrets["AIzaSyCX3I28pHzmiSEM6Rt1kdVX7e2BhwSuOOA"]  # Ensure this secret is added in Streamlit Cloud
     response = genai.generate_text(prompt, api_key=api_key)
     return format_response(response)
 
