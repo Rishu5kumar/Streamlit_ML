@@ -14,7 +14,7 @@ import re
 model = joblib.load('model.pkl')
 encoder = joblib.load('encoder.pkl')
 
-genai.configure(api_key=st.secrets["genai"]["AIzaSyCX3I28pHzmiSEM6Rt1kdVX7e2BhwSuOOA"])
+# genai.configure(api_key=st.secrets["genai"]["AIzaSyCX3I28pHzmiSEM6Rt1kdVX7e2BhwSuOOA"])
 
 # Function to preprocess input data
 def preprocess_input(average_temp, year, month, country, encoder):
