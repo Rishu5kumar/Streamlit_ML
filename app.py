@@ -2,21 +2,12 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import joblib
-from sklearn.preprocessing import OneHotEncoder
-from sklearn.ensemble import RandomForestRegressor
-import matplotlib.pyplot as plt
-import io
 import genai
-import html
+import matplotlib.pyplot as plt
 import re
+import html
 from sklearn.impute import SimpleImputer
-
-
-# Load the trained model and encoder
-model = joblib.load('model.pkl')
-encoder = joblib.load('encoder.pkl')
-
-# genai.configure(api_key=st.secrets["genai"]["AIzaSyCX3I28pHzmiSEM6Rt1kdVX7e2BhwSuOOA"])
+from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 
 # Function to preprocess input data
 def preprocess_input(average_temp, year, month, country, encoder):
@@ -25,7 +16,7 @@ def preprocess_input(average_temp, year, month, country, encoder):
     input_data = np.concatenate((features, country_encoded), axis=1)
     return input_data
 
-# Function to generate descriptive paragraph using Gemini API
+# Function to generate descriptive paragraph using genai
 def generate_paragraph(avg_temp, predicted_uncertainty, year, month, country):
     month_name = pd.to_datetime(f"{year}-{month}-01").strftime("%B")
     
@@ -45,6 +36,7 @@ def generate_paragraph(avg_temp, predicted_uncertainty, year, month, country):
     response = genai.generate_text(prompt, api_key=api_key)
     return format_response(response)
 
+# Function to format the response
 def format_response(text):
     formatted_text = html.escape(text)
     formatted_text = formatted_text.strip()
@@ -61,15 +53,19 @@ year = st.sidebar.number_input('Year', value=2024, min_value=1900, max_value=210
 month = st.sidebar.number_input('Month', value=7, min_value=1, max_value=12)
 country = st.sidebar.text_input('Country', value='India')
 
+# Load the trained model and encoder
+model = joblib.load('model.pkl')
+encoder = joblib.load('encoder.pkl')
+
 # Predict button
 if st.sidebar.button('Predict'):
     input_data = preprocess_input(average_temp, year, month, country, encoder)
     predicted_uncertainty = model.predict(input_data)[0]
     st.write(f"**Predicted Temperature Uncertainty** for {country} in {month}/{year} with avg_temp {average_temp}°C: {predicted_uncertainty:.2f}°C")
     
-    # Generate and display paragraph using Gemini API
-    paragraph = generate_paragraph(average_temp, predicted_uncertainty, year, month, country)
-    st.markdown(paragraph, unsafe_allow_html=True)
+    # Generate paragraph
+    description = generate_paragraph(average_temp, predicted_uncertainty, year, month, country)
+    st.write(description, unsafe_allow_html=True)
 
 # Load the historical data for plotting
 df = pd.read_csv('temperature.csv')
@@ -91,12 +87,15 @@ cat_imputer = SimpleImputer(strategy='constant', fill_value=0)
 df[['AverageTemperature', 'year', 'month']] = num_imputer.fit_transform(df[['AverageTemperature', 'year', 'month']])
 df[expected_columns] = cat_imputer.fit_transform(df[expected_columns])
 
-# Calculate metrics
-from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
-
 # Prepare data for model evaluation
 X = df[['AverageTemperature', 'year', 'month'] + list(expected_columns)]
 y = df['AverageTemperatureUncertainty']
+
+# Check and remove any remaining NaN values
+if np.any(pd.isna(X)):
+    st.write("Warning: Some input data contains NaN values, which have been imputed.")
+    X = np.nan_to_num(X)
+
 y_pred = model.predict(X)
 
 # Model evaluation metrics
