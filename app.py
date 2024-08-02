@@ -80,11 +80,20 @@ expected_columns = encoder.get_feature_names_out(['Country'])
 for col in expected_columns:
     if col not in df.columns:
         df[col] = 0
-        
+
+# Impute missing values
+num_imputer = SimpleImputer(strategy='median')
+cat_imputer = SimpleImputer(strategy='constant', fill_value=0)
+
+# Apply imputers
+df[['AverageTemperature', 'year', 'month']] = num_imputer.fit_transform(df[['AverageTemperature', 'year', 'month']])
+df[expected_columns] = cat_imputer.fit_transform(df[expected_columns])
+
 # Calculate metrics
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 
-X = df[['AverageTemperature', 'year', 'month'] + list(encoder.get_feature_names_out(['Country']))]
+# Prepare data for model evaluation
+X = df[['AverageTemperature', 'year', 'month'] + list(expected_columns)]
 y = df['AverageTemperatureUncertainty']
 y_pred = model.predict(X)
 
