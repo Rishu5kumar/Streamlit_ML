@@ -75,9 +75,12 @@ df['dt'] = pd.to_datetime(df['dt'])
 df['year'] = df['dt'].dt.year
 df['month'] = df['dt'].dt.month
 
-# Model evaluation metrics
-st.sidebar.header('Model Evaluation Metrics')
-
+# Ensure all expected columns are in the DataFrame
+expected_columns = encoder.get_feature_names_out(['Country'])
+for col in expected_columns:
+    if col not in df.columns:
+        df[col] = 0
+        
 # Calculate metrics
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 
@@ -85,6 +88,8 @@ X = df[['AverageTemperature', 'year', 'month'] + list(encoder.get_feature_names_
 y = df['AverageTemperatureUncertainty']
 y_pred = model.predict(X)
 
+# Model evaluation metrics
+st.sidebar.header('Model Evaluation Metrics')
 mae = mean_absolute_error(y, y_pred)
 mse = mean_squared_error(y, y_pred)
 rmse = np.sqrt(mse)
