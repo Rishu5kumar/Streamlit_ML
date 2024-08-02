@@ -38,21 +38,10 @@ def generate_paragraph(avg_temp, predicted_uncertainty, year, month, country):
         f"Understanding and addressing these uncertainties is crucial for effective planning and decision-making in these areas."
     )
 
-    generation_config = {
-        "temperature": 0.45,
-        "top_p": 0.95,
-        "top_k": 64,
-        "max_output_tokens": 1500,
-        "response_mime_type": "text/plain",
-    }
-    
-    model = genai.GenerativeModel(
-        model_name="gemini-1.5-flash",
-        generation_config=generation_config,
-    )
-    
-    response = model.generate_content(prompt)
-    return format_response(response.text)
+    # Use API key directly in method call or through environment variable
+    api_key = st.secrets["genai"]["AIzaSyCX3I28pHzmiSEM6Rt1kdVX7e2BhwSuOOA"]  # Ensure this secret is added in Streamlit Cloud
+    response = genai.generate_text(prompt, api_key=api_key)
+    return format_response(response)
 
 def format_response(text):
     formatted_text = html.escape(text)
